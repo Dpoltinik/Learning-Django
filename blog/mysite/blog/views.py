@@ -1,8 +1,8 @@
 from shutil import ExecError
 from django.shortcuts import render, get_object_or_404
-from .models import Post
+from .models import Post, Comment
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .forms import EmailPostForm
+from .forms import EmailPostForm, CommentForm
 from django.core.mail import send_mail
 
 def post_list(request):
@@ -30,7 +30,24 @@ def post_detail(request, year, month, day, post):
         publish__month=month,
         publish__day=day 
     )
-    context = {'post': post}
+    comments = post.comments.filter(active=True)
+    new_comment = None
+    if request.method == 'POST':
+        comment_form = CommentForm(data=request.POST)
+        if comment_form.is_valid():
+            new_comment = comment_form.save(commit=False)
+            new_comment.post = post
+            new_comment.save()
+    else:
+        comment_form = CommentForm()
+
+    context = {
+        'post': post,
+        'comment_form': comment_form,
+        'new_comment': new_comment,
+        'comments': comments
+        }
+
     return render(request, 'blog/post/detail.html', context)
 
 def post_share(request, post_id):
