@@ -55,5 +55,7 @@ def post_share(request, post_id):
         'post': post,
         'form': form
     }
+    
+    return render(request, 'blog/post/share.html', context)
 
 # Create your views here.
